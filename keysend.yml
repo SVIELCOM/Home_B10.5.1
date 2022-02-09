@@ -1,0 +1,39 @@
+---
+
+- hosts: server
+  gather_facts: false
+  become: true
+  become_user: root
+  vars_files:
+  - ssh_key_vault.yml
+  
+  tasks:
+  - name: create user
+    user:
+      name: john
+      state: present
+
+  - name: create dir
+    file: 
+      path: /home/john/.ssh 
+      state: directory 
+      mode: '0700' 
+      owner: john     
+
+  - name: decode private key    
+    shell: echo {{ssh_private_key}} |base64 --decode
+    register: ssh_private_key_decoded
+
+  - name: copy private key
+    template: 
+      src: templates/HOME_.ssh_id_rsa
+      dest: /home/john/.ssh/id_rsa
+      mode: '0600' 
+      owner: john
+
+  - name: copy public key
+    template: 
+      src: templates/HOME_.ssh_id_rsa.pub 
+      dest: /home/john/.ssh/id_rsa.pub 
+      mode: '0644' 
+      owner: john
